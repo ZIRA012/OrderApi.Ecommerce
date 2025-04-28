@@ -20,11 +20,3 @@ Esta API forma parte del sistema de backend de un ECommerce, encargándose de ge
 - FakeItEasy para pruebas unitarias
 - FluentAssertions para validaciones en pruebas
 
-## Librerías compartidas necesarias
-
-Este proyecto depende de librerías compartidas que contienen configuraciones, respuestas estándar, excepciones y utilidades comunes para todas las APIs del sistema.
-
-Por favor, clona también el siguiente repositorio:
-
-```bash
-git clone https://github.com/ZIRA012/ECommerceLibreriasCompartidas.git
