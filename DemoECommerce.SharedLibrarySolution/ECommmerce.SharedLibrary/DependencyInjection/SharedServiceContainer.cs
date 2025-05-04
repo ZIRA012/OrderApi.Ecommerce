@@ -41,7 +41,7 @@ namespace ECommmerce.SharedLibrary.DependencyInjection
             app.UseMiddleware<GlobalException>();
 
             //registar middle ware para bloquear todo
-            //app.UseMiddleware<ListeToOnlyApiGateway>();
+            app.UseMiddleware<ListeToOnlyApiGateway>();
             return app;
         }
     }

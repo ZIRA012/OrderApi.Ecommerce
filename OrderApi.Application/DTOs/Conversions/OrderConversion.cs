@@ -23,8 +23,8 @@ public static class OrderConversion
             {
                 var singleOrder = new OrderDTO(
                     order!.Id,
-                    order.ClientId,
                     order.ProductId,
+                    order.ClientId,
                     order.PurchaseQuantity,
                     order.OrderedDate
                     );
@@ -37,8 +37,8 @@ public static class OrderConversion
             var _orders = orders!.Select(o =>
             new OrderDTO(
                 o.Id,
-                o.ClientId,
                 o.ProductId,
+                o.ClientId,
                 o.PurchaseQuantity,
                 o.OrderedDate
                 ));

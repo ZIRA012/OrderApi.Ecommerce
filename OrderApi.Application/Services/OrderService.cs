@@ -12,11 +12,13 @@ using System.Text.Json;
 
 using Response = ECommmerce.SharedLibrary.Responses.Response;
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace OrderApi.Application.Services;
 
 public class OrderSevice(IOrder orderInterface,HttpClient httpClient,
-    ResiliencePipelineProvider<string> resiliencePipeline) : IOrderService
+    ResiliencePipelineProvider<string> resiliencePipeline, IHttpContextAccessor httpContextAccessor) : IOrderService
 {
     //Get Product //Utilizamos la Product Api para que nos de el aproducto
     public async Task<ProductDTO> GetProduct(int ProductId)
@@ -45,7 +47,17 @@ public class OrderSevice(IOrder orderInterface,HttpClient httpClient,
         //Actualizamos el producto
         var json = JsonSerializer.Serialize(updateProductDTO);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var putResponse = await httpClient.PutAsync($"/api/Products/", content);
+
+        var token = httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+        }
+
+
+        var putResponse = await httpClient.PutAsync($"/api/Products", content);
         var message = await putResponse.Content.ReadAsStringAsync();
         if (!putResponse.IsSuccessStatusCode)
         {
@@ -133,7 +145,7 @@ public class OrderSevice(IOrder orderInterface,HttpClient httpClient,
         var UpdateResponse = await UpdateProductQuantity(productDTO, order.PurchaseQuantity);
         if(!UpdateResponse.Flag)
         {
-            return new Response(false, "No se pudi conectar con la API Reponse");
+            return new Response(false, "No se pudo Actualizar la cantidad de productos");
         }
         return new Response(true, "La Producto esta disponible y se actualizo el numero Disponible");
 

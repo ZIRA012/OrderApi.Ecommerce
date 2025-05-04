@@ -2,7 +2,9 @@
 using System.Linq.Expressions;
 using System.Net.Http.Json;
 using FakeItEasy;
+using FakeItEasy.Sdk;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using OrderApi.Application.DTOs;
 using OrderApi.Application.Interfaces;
 using OrderApi.Application.Services;
@@ -15,10 +17,13 @@ public class OrderServiceTest
 
     private readonly IOrderService orderServiceInterface;
     private readonly IOrder orderInterface;
+    private readonly IHttpContextAccessor httpContextAccessor;
     public OrderServiceTest()
     {
         orderInterface = A.Fake<IOrder>();
         orderServiceInterface = A.Fake<IOrderService>();
+        httpContextAccessor = A.Fake<IHttpContextAccessor>();
+
     }
     
 
@@ -46,6 +51,17 @@ public class OrderServiceTest
         };
         return _httpClient;
     }
+    private static IHttpContextAccessor CreateFakeHttpContextAccessor(string token = "fake-jwt-token")
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers["Authorization"] = $"Bearer {token}";
+
+        // FakeItEasy: Creamos un IHttpContextAccessor y configuramos el comportamiento de HttpContext
+        var httpContextAccessor = A.Fake<IHttpContextAccessor>();
+        A.CallTo(() => httpContextAccessor.HttpContext).Returns(context);
+
+        return httpContextAccessor;
+    }
 
 
     [Fact]
@@ -58,8 +74,11 @@ public class OrderServiceTest
         var _httpClient = CreateFakeHttpClient(productDTO);
 
 
+        // Crear IHttpContextAccessor fake
+        var fakeToken = "eyJhbGciOi..."; // Usa un string dummy o real token si es necesario
+        var _httpContextAccessor = CreateFakeHttpContextAccessor(fakeToken);
         //Solo pasamos el http Cliente no la Iorder ni la resilencesPipelien
-        var _orderService = new OrderSevice(null!, _httpClient, null!);
+        var _orderService = new OrderSevice(null!, _httpClient, null!,_httpContextAccessor);
 
         //Actuamos
         var result = await _orderService.GetProduct(productId);
@@ -79,9 +98,10 @@ public class OrderServiceTest
 
         var _httpClient = CreateFakeHttpClient(null!);
 
-
+        var fakeToken = "eyJhbGciOi..."; // Usa un string dummy o real token si es necesario
+        var _httpContextAccessor = CreateFakeHttpContextAccessor(fakeToken);
         //Solo pasamos el http Cliente no la Iorder ni la resilencesPipelien
-        var _orderService = new OrderSevice(null!, _httpClient, null!);
+        var _orderService = new OrderSevice(null!, _httpClient, null!, _httpContextAccessor);
 
         //Actuamos
         var result = await _orderService.GetProduct(productId);
@@ -98,13 +118,14 @@ public class OrderServiceTest
         { new() {Id = 1, ProductId=1, ClientId = clienId, PurchaseQuantity=1, OrderedDate=DateTime.UtcNow}
         ,
           new() {Id = 1, ProductId=2, ClientId = clienId, PurchaseQuantity=1, OrderedDate=DateTime.UtcNow }
-        };  
-        
-        //Mock Para GetOrdersBy Method
+        };
 
+        //Mock Para GetOrdersBy Method
+        var fakeToken = "eyJhbGciOi..."; // Usa un string dummy o real token si es necesario
+        var _httpContextAccessor = CreateFakeHttpContextAccessor(fakeToken);
         A.CallTo(() => orderInterface.GetOrdersAsync
         (A<Expression<Func<Order, bool>>>.Ignored)).Returns(orders);
-        var _orderService = new OrderSevice(orderInterface!, null!, null!);
+        var _orderService = new OrderSevice(orderInterface!, null!, null!, _httpContextAccessor);
         //Actuar
 
         var result = await _orderService.GetOrdersByClientIDAsync(clienId);

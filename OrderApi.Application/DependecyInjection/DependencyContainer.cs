@@ -46,7 +46,8 @@ public static class DependencyContainer
         {
             builder.AddRetry(retryStrategy);
         });
-
+        //Para propagar Header ebnn caso de las peticiones internas que necesiten Authorizacion
+        services.AddHttpContextAccessor();
         return services;
     }
 }
